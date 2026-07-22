@@ -253,7 +253,7 @@ class Component extends DCLogic {
       const res = await fetch(this.apiBase + '/api/comments');
       const comments = await res.json();
       this.setState({ comments });
-    } catch (e) {}
+    } catch (e) { console.error('Failed to load comments', e); }
   }
 
   formatDate(iso) {
