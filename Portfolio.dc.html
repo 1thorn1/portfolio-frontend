@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    @keyframes blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes steamMove { 0% { opacity: 0; transform: translateY(0) scaleY(1); } 30% { opacity: .8; } 100% { opacity: 0; transform: translateY(-14px) scaleY(1.3); } }
+    @keyframes pulseSoft { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+    body { margin: 0; background: oklch(0.16 0.02 250); }
+    a { color: oklch(0.78 0.14 70); text-decoration: none; }
+    a:hover { color: oklch(0.82 0.16 70); text-decoration: underline; }
+  </style>
+</helmet>
+
+<div style="min-height:100vh; background: oklch(0.16 0.02 250); color: oklch(0.94 0.01 250); font-family: 'Noto Sans KR', system-ui, sans-serif; position: relative; overflow-x: hidden;">
+
+  <sc-if value="{{ showIntro }}" hint-placeholder-val="{{ true }}">
+    <div style="position:fixed; inset:0; z-index:50; background: oklch(0.12 0.015 250); display:flex; align-items:center; justify-content:center; padding:24px;">
+      <div style="width:100%; max-width:680px;">
+        <div style="border-radius:10px; overflow:hidden; border:1px solid oklch(0.32 0.02 250); box-shadow:0 30px 80px rgba(0,0,0,0.5); background: oklch(0.14 0.015 250);">
+          <div style="display:flex; align-items:center; gap:8px; padding:10px 14px; background: oklch(0.19 0.02 250); border-bottom:1px solid oklch(0.28 0.02 250);">
+            <div style="width:11px; height:11px; border-radius:50%; background: oklch(0.7 0.15 25);"></div>
+            <div style="width:11px; height:11px; border-radius:50%; background: oklch(0.78 0.14 70);"></div>
+            <div style="width:11px; height:11px; border-radius:50%; background: oklch(0.75 0.16 150);"></div>
+            <div style="margin-left:10px; font-family:'JetBrains Mono', monospace; font-size:12px; color: oklch(0.6 0.02 250);">guest@portfolio — zsh</div>
+          </div>
+          <div style="padding:26px 24px 30px; font-family:'JetBrains Mono', monospace; font-size:15px; line-height:1.9; min-height:260px;">
+            <div style="color: oklch(0.75 0.16 150);">
+              guest@portfolio<span style="color: oklch(0.65 0.02 250);">:~$</span> {{ typedCommand }}<span style="display:inline-block; width:8px; height:16px; background: oklch(0.94 0.01 250); vertical-align:-3px; animation: blink 1s step-end infinite;"></span>
+            </div>
+
+            <sc-if value="{{ isWaiting }}" hint-placeholder-val="{{ false }}">
+              <div style="margin-top:14px; color: oklch(0.78 0.14 70); animation: pulseSoft 1.6s ease-in-out infinite;">↵ Enter 키를 눌러 설치를 시작하세요</div>
+            </sc-if>
+
+            <sc-if value="{{ isRunning }}" hint-placeholder-val="{{ false }}">
+              <div style="margin-top:14px; display:flex; gap:24px; align-items:flex-start;">
+                <div style="flex:1; min-width:0;">
+                  <sc-for list="{{ logLines }}" as="line" hint-placeholder-count="0">
+                    <div style="color: oklch(0.75 0.01 250); animation: fadeUp .35s ease both; margin-bottom:4px;">{{ line }}</div>
+                  </sc-for>
+                </div>
+                <svg width="84" height="104" viewBox="0 0 90 110" style="flex-shrink:0;">
+                  <path d="M30 15 Q25 8 30 2" stroke="oklch(0.6 0.02 250)" stroke-width="2" fill="none" style="animation: steamMove 1.8s ease-in-out infinite;"></path>
+                  <path d="M45 13 Q40 6 45 0" stroke="oklch(0.6 0.02 250)" stroke-width="2" fill="none" style="animation: steamMove 1.8s ease-in-out .4s infinite;"></path>
+                  <path d="M60 15 Q55 8 60 2" stroke="oklch(0.6 0.02 250)" stroke-width="2" fill="none" style="animation: steamMove 1.8s ease-in-out .8s infinite;"></path>
+                  <path d="M65 40 Q85 40 85 55 Q85 70 65 70" fill="none" stroke="oklch(0.4 0.02 250)" stroke-width="3"></path>
+                  <defs><clipPath id="cupClip"><rect x="15" y="25" width="50" height="60" rx="6"></rect></clipPath></defs>
+                  <rect x="15" y="{{ cupFillY }}" width="50" height="{{ cupFillHeight }}" clip-path="url(#cupClip)" fill="oklch(0.6 0.13 55)"></rect>
+                  <rect x="15" y="25" width="50" height="60" rx="6" fill="none" stroke="oklch(0.4 0.02 250)" stroke-width="3"></rect>
+                  <text x="45" y="118" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="oklch(0.6 0.02 250)">{{ coffeePct }}%</text>
+                </svg>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:16px; margin-top:14px; font-family:'JetBrains Mono', monospace; font-size:12px; color: oklch(0.6 0.02 250);">
+          <button onClick="{{ onSkipForever }}" style="background:none; border:none; color:inherit; cursor:pointer; font-family:inherit; font-size:inherit; text-decoration:underline;">다음부터 자동으로 건너뛰기</button>
+          <button onClick="{{ onSkip }}" style="background: oklch(0.24 0.02 250); border:1px solid oklch(0.34 0.02 250); color: oklch(0.9 0.01 250); cursor:pointer; font-family:inherit; font-size:12px; padding:6px 14px; border-radius:6px;">건너뛰기 →</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showMain }}" hint-placeholder-val="{{ false }}">
+    <div style="animation: fadeUp .5s ease both;">
+
+      <nav style="position:sticky; top:0; z-index:20; display:flex; align-items:center; justify-content:space-between; padding:16px 32px; background: oklch(0.16 0.02 250 / 0.9); backdrop-filter: blur(8px); border-bottom:1px solid oklch(0.26 0.02 250);">
+        <div style="font-family:'JetBrains Mono', monospace; font-weight:700; font-size:15px; color: oklch(0.75 0.16 150);">jkang<span style="color: oklch(0.6 0.02 250);">@backend</span></div>
+        <div style="display:flex; gap:22px; align-items:center; font-size:14px;">
+          <a href="#story" style="color: oklch(0.85 0.01 250);">Story</a>
+          <a href="#timeline" style="color: oklch(0.85 0.01 250);">Career</a>
+          <a href="#projects" style="color: oklch(0.85 0.01 250);">Projects</a>
+          <a href="#comments" style="color: oklch(0.85 0.01 250);">Comments</a>
+          <a href="{{ resumeHref }}" style="background: oklch(0.78 0.14 70); color: oklch(0.14 0.02 60); padding:8px 16px; border-radius:6px; font-weight:700; font-size:13px;">Resume ↓</a>
+        </div>
+      </nav>
+
+      <header style="padding:100px 32px 90px; max-width:900px; margin:0 auto; text-align:left;">
+        <div style="font-family:'JetBrains Mono', monospace; font-size:14px; color: oklch(0.75 0.16 150); margin-bottom:18px;">$ whoami</div>
+        <h1 style="font-size:52px; font-weight:900; line-height:1.25; margin:0 0 20px; letter-spacing:-0.01em;">
+          게임 클라이언트를 만들던 손으로,<br>지금은 백엔드를 짭니다.
+        </h1>
+        <p style="font-size:18px; line-height:1.8; color: oklch(0.72 0.015 250); max-width:640px; margin:0 0 32px;">
+          강주희 · Backend Engineer<br>
+          C++ 게임 클라이언트 개발 경험을 바탕으로, 지금은 Java / Spring 기반 백엔드를 개발합니다.
+        </p>
+        <div style="display:flex; gap:12px; flex-wrap:wrap;">
+          <a href="https://github.com/1thorn1" style="border:1px solid oklch(0.4 0.02 250); padding:10px 18px; border-radius:6px; font-size:14px; font-family:'JetBrains Mono', monospace;">GitHub ↗</a>
+          <a href="mailto:kjhi4691@naver.com" style="border:1px solid oklch(0.4 0.02 250); padding:10px 18px; border-radius:6px; font-size:14px; font-family:'JetBrains Mono', monospace;">kjhi4691@naver.com</a>
+        </div>
+        <div style="margin-top:22px; display:flex; align-items:center; gap:8px; font-family:'JetBrains Mono', monospace; font-size:13px; color: oklch(0.6 0.02 250);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(0.75 0.16 150)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="8" r="4"></circle>
+            <path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7"></path>
+          </svg>
+          <span style="color: oklch(0.75 0.16 150);">{{ visitorCountLabel }}</span>
+        </div>
+      </header>
+
+      <section id="story" style="padding:70px 32px; max-width:900px; margin:0 auto; border-top:1px solid oklch(0.24 0.02 250);">
+        <div style="font-family:'JetBrains Mono', monospace; font-size:13px; color: oklch(0.6 0.02 250); margin-bottom:10px;">01 · Story</div>
+        <h2 style="font-size:30px; font-weight:700; margin:0 0 24px;">게임에서 배운 구조, 백엔드에서 다시 쓰다</h2>
+        <div style="font-size:16px; line-height:2; color: oklch(0.78 0.015 250);">
+          <p>게임인재원에서 C++과 WinAPI, DirectX로 게임 클라이언트를 직접 짜면서 프레임 단위로 동작하는 실시간 시스템의 감각을 익혔습니다. 물리, 충돌, FSM 같은 게임 로직을 처음부터 설계하고 디버깅하는 과정에서 상태 관리와 성능에 대한 감각을 키웠습니다.</p>
+          <p>㈜올빅뎃 인턴 시절 FastAPI 서버에 JMeter로 부하 테스트를 진행하며 서버 아키텍처와 트래픽 처리에 흥미를 느꼈고, 이후 Java와 Spring으로 방향을 옮겨 안정적이고 확장 가능한 백엔드를 만드는 일에 집중하고 있습니다. 클라이언트에서 다져진 "실시간 처리" 감각은 지금도 API 설계와 트래픽 대응에 그대로 이어지고 있습니다.</p>
+        </div>
+      </section>
+
+      <section id="timeline" style="padding:70px 32px; max-width:900px; margin:0 auto; border-top:1px solid oklch(0.24 0.02 250);">
+        <div style="font-family:'JetBrains Mono', monospace; font-size:13px; color: oklch(0.6 0.02 250); margin-bottom:10px;">02 · Education & Career</div>
+        <h2 style="font-size:30px; font-weight:700; margin:0 0 36px;">학력 및 경력</h2>
+        <div style="position:relative; padding-left:28px;">
+          <div style="position:absolute; left:5px; top:6px; bottom:6px; width:2px; background: oklch(0.28 0.02 250);"></div>
+          <sc-for list="{{ education }}" as="item" hint-placeholder-count="6">
+            <div style="position:relative; padding-bottom:32px;">
+              <div style="position:absolute; left:-28px; top:4px; width:12px; height:12px; border-radius:50%; background: {{ item.color }}; box-shadow: 0 0 0 4px oklch(0.16 0.02 250);"></div>
+              <div style="font-family:'JetBrains Mono', monospace; font-size:13px; color: oklch(0.6 0.02 250); margin-bottom:4px;">{{ item.period }}</div>
+              <div style="font-size:17px; font-weight:700; margin-bottom:2px;">{{ item.title }}</div>
+              <div style="font-size:14px; color: oklch(0.68 0.015 250);">{{ item.detail }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+
+      <section id="projects" style="padding:70px 32px; max-width:1100px; margin:0 auto; border-top:1px solid oklch(0.24 0.02 250);">
+        <div style="font-family:'JetBrains Mono', monospace; font-size:13px; color: oklch(0.6 0.02 250); margin-bottom:10px;">03 · Projects</div>
+        <h2 style="font-size:30px; font-weight:700; margin:0 0 36px;">작업한 프로젝트</h2>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:22px;">
+          <sc-for list="{{ projects }}" as="p" hint-placeholder-count="4">
+            <div style="background: oklch(0.19 0.02 250); border:1px solid oklch(0.28 0.02 250); border-radius:10px; padding:26px; display:flex; flex-direction:column; gap:14px;">
+              <div>
+                <div style="font-family:'JetBrains Mono', monospace; font-size:12px; color: oklch(0.75 0.16 150); margin-bottom:6px;">{{ p.org }} · {{ p.period }}</div>
+                <div style="font-size:19px; font-weight:700;">{{ p.title }}</div>
+              </div>
+              <sc-if value="{{ p.repo }}" hint-placeholder-val="{{ false }}">
+                <a href="{{ p.repo }}" style="font-family:'JetBrains Mono', monospace; font-size:12.5px; align-self:flex-start;">GitHub ↗</a>
+              </sc-if>
+              <ul style="margin:0; padding-left:18px; font-size:14px; line-height:1.85; color: oklch(0.75 0.015 250);">
+                <sc-for list="{{ p.tasks }}" as="task" hint-placeholder-count="3">
+                  <li>{{ task }}</li>
+                </sc-for>
+              </ul>
+              <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:auto; padding-top:6px;">
+                <sc-for list="{{ p.tech }}" as="t" hint-placeholder-count="4">
+                  <span style="display:inline-flex; align-items:center; gap:6px; font-family:'JetBrains Mono', monospace; font-size:11.5px; padding:4px 10px; border-radius:5px; background: oklch(0.24 0.02 250); border:1px solid oklch(0.32 0.02 250); color: oklch(0.85 0.01 250);">
+                    <sc-if value="{{ t.icon }}" hint-placeholder-val="{{ false }}">
+                      <img src="{{ t.icon }}" alt="" style="width:13px; height:13px; filter: invert(1) brightness(1.3); opacity:.85;"></img>
+                    </sc-if>
+                    {{ t.name }}
+                  </span>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+
+      <section id="comments" style="padding:70px 32px; max-width:900px; margin:0 auto; border-top:1px solid oklch(0.24 0.02 250);">
+        <div style="font-family:'JetBrains Mono', monospace; font-size:13px; color: oklch(0.6 0.02 250); margin-bottom:10px;">04 · Guestbook</div>
+        <h2 style="font-size:30px; font-weight:700; margin:0 0 24px;">방명록</h2>
+
+        <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:32px; max-width:560px;">
+          <input placeholder="닉네임" value="{{ commentAuthor }}" onChange="{{ onCommentAuthorChange }}" style="background: oklch(0.19 0.02 250); border:1px solid oklch(0.32 0.02 250); border-radius:6px; padding:10px 14px; color:inherit; font-family:inherit; font-size:14px;"></input>
+          <textarea placeholder="댓글을 남겨주세요" value="{{ commentContent }}" onChange="{{ onCommentContentChange }}" rows="3" style="background: oklch(0.19 0.02 250); border:1px solid oklch(0.32 0.02 250); border-radius:6px; padding:10px 14px; color:inherit; font-family:inherit; font-size:14px; resize:vertical;"></textarea>
+          <sc-if value="{{ commentError }}" hint-placeholder-val="{{ false }}">
+            <div style="color: oklch(0.7 0.15 25); font-size:13px;">{{ commentError }}</div>
+          </sc-if>
+          <button onClick="{{ onSubmitComment }}" disabled="{{ commentSubmitting }}" style="align-self:flex-start; background: oklch(0.78 0.14 70); color: oklch(0.14 0.02 60); border:none; padding:10px 20px; border-radius:6px; font-weight:700; font-size:13px; cursor:pointer; font-family:'JetBrains Mono', monospace;">{{ submitLabel }}</button>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:16px;">
+          <sc-for list="{{ comments }}" as="c" hint-placeholder-count="3">
+            <div style="background: oklch(0.19 0.02 250); border:1px solid oklch(0.28 0.02 250); border-radius:8px; padding:16px 18px;">
+              <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px;">
+                <span style="font-weight:700; font-size:14px;">{{ c.author }}</span>
+                <span style="font-family:'JetBrains Mono', monospace; font-size:11.5px; color: oklch(0.6 0.02 250);">{{ c.createdAtLabel }}</span>
+              </div>
+              <div style="font-size:14px; line-height:1.7; color: oklch(0.82 0.015 250); white-space:pre-wrap;">{{ c.content }}</div>
+              <button onClick="{{ c.onDelete }}" style="margin-top:8px; background:none; border:none; color: oklch(0.55 0.02 250); font-size:11.5px; cursor:pointer; text-decoration:underline; font-family:'JetBrains Mono', monospace;">삭제</button>
+            </div>
+          </sc-for>
+          <sc-if value="{{ noComments }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:14px; color: oklch(0.6 0.02 250);">아직 댓글이 없습니다. 첫 댓글을 남겨보세요!</div>
+          </sc-if>
+        </div>
+      </section>
+
+      <footer style="padding:60px 32px 80px; max-width:900px; margin:0 auto; border-top:1px solid oklch(0.24 0.02 250); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+        <div style="font-family:'JetBrains Mono', monospace; font-size:13px; color: oklch(0.6 0.02 250);">© 2026 강주희. Built with Spring in mind, shipped with a terminal habit.</div>
+        <div style="display:flex; gap:18px; font-size:14px;">
+          <a href="mailto:kjhi4691@naver.com">Email</a>
+          <a href="https://github.com/1thorn1">GitHub</a>
+          <button onClick="{{ onReplay }}" style="background:none; border:none; color: oklch(0.6 0.02 250); cursor:pointer; font-family:'JetBrains Mono', monospace; font-size:13px; text-decoration:underline;">인트로 다시보기</button>
+        </div>
+      </footer>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  fullCommand = 'brew install coffee';
+  apiBase = 'http://localhost:8080';
+  state = {
+    stage: 'idle', typedLen: 0, logLines: [], coffeePct: 0,
+    visitorCount: null,
+    comments: [], commentAuthor: '', commentContent: '', commentError: '', commentSubmitting: false,
+  };
+
+  componentDidMount() {
+    this._timers = this._timers || [];
+    try {
+      if (window.localStorage && window.localStorage.getItem('pf_skip_intro') === '1') {
+        this.setState({ stage: 'done' });
+      } else {
+        this.startTyping();
+        this._onKey = (e) => {
+          if (e.key === 'Enter' && this.state.stage === 'waiting') this.runSequence();
+        };
+        window.addEventListener('keydown', this._onKey);
+      }
+    } catch (e) {}
+    this.loadVisitorCount();
+    this.loadComments();
+  }
+
+  async loadVisitorCount() {
+    try {
+      const res = await fetch(this.apiBase + '/api/visitors/count');
+      const data = await res.json();
+      this.setState({ visitorCount: data.totalCount });
+    } catch (e) {
+      this.setState({ visitorCount: null });
+    }
+  }
+
+  async loadComments() {
+    try {
+      const res = await fetch(this.apiBase + '/api/comments');
+      const comments = await res.json();
+      this.setState({ comments });
+    } catch (e) {}
+  }
+
+  formatDate(iso) {
+    const d = new Date(iso);
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  onCommentAuthorChange(e) {
+    this.setState({ commentAuthor: e.target.value });
+  }
+
+  onCommentContentChange(e) {
+    this.setState({ commentContent: e.target.value });
+  }
+
+  async submitComment() {
+    const author = this.state.commentAuthor.trim();
+    const content = this.state.commentContent.trim();
+    if (!author || !content) {
+      this.setState({ commentError: '닉네임과 댓글 내용을 모두 입력해주세요.' });
+      return;
+    }
+    this.setState({ commentSubmitting: true, commentError: '' });
+    try {
+      const res = await fetch(this.apiBase + '/api/comments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ author, content }),
+      });
+      if (!res.ok) throw new Error('작성에 실패했습니다.');
+      const comment = await res.json();
+      this.setState(prev => ({
+        comments: [comment, ...prev.comments],
+        commentAuthor: '', commentContent: '', commentSubmitting: false,
+      }));
+    } catch (e) {
+      this.setState({ commentSubmitting: false, commentError: '댓글 작성 중 오류가 발생했습니다.' });
+    }
+  }
+
+  async deleteComment(id) {
+    const adminKey = window.prompt('관리자 키를 입력하세요');
+    if (!adminKey) return;
+    try {
+      const res = await fetch(this.apiBase + '/api/comments/' + id, {
+        method: 'DELETE',
+        headers: { 'X-Admin-Key': adminKey },
+      });
+      if (res.status === 403) {
+        window.alert('관리자만 삭제할 수 있습니다.');
+        return;
+      }
+      if (!res.ok) throw new Error('삭제에 실패했습니다.');
+      this.setState(prev => ({ comments: prev.comments.filter(c => c.id !== id) }));
+    } catch (e) {
+      window.alert('댓글 삭제 중 오류가 발생했습니다.');
+    }
+  }
+
+  componentWillUnmount() {
+    if (this._onKey) window.removeEventListener('keydown', this._onKey);
+    this.clearTimers();
+  }
+
+  clearTimers() {
+    (this._timers || []).forEach(t => clearTimeout(t));
+    this._timers = [];
+  }
+
+  startTyping() {
+    this.setState({ stage: 'typing', typedLen: 0, logLines: [], coffeePct: 0 });
+    const step = (i) => {
+      this.setState({ typedLen: i });
+      if (i < this.fullCommand.length) {
+        this._timers.push(setTimeout(() => step(i + 1), 55));
+      } else {
+        this._timers.push(setTimeout(() => this.setState({ stage: 'waiting' }), 350));
+      }
+    };
+    step(0);
+  }
+
+  runSequence() {
+    this.clearTimers();
+    this.setState({ stage: 'running', logLines: [], coffeePct: 0 });
+    const lines = [
+      { delay: 200, text: 'Resolving dependencies...' },
+      { delay: 650, text: 'Fetching coffee-1.0.0.tar.gz' },
+      { delay: 1150, text: 'Brewing...' },
+    ];
+    lines.forEach(l => {
+      this._timers.push(setTimeout(() => {
+        this.setState(prev => ({ logLines: [...prev.logLines, l.text] }));
+      }, l.delay));
+    });
+    const fillStart = 1350, fillDuration = 1300;
+    const t0 = Date.now();
+    const tick = () => {
+      const elapsed = Date.now() - t0 - fillStart;
+      if (elapsed < 0) { this._timers.push(setTimeout(tick, 50)); return; }
+      const pct = Math.min(100, Math.round((elapsed / fillDuration) * 100));
+      this.setState({ coffeePct: pct });
+      if (pct < 100) {
+        this._timers.push(setTimeout(tick, 50));
+      } else {
+        this._timers.push(setTimeout(() => {
+          this.setState(prev => ({ logLines: [...prev.logLines, 'Coffee installed. \u2615'] }));
+        }, 150));
+        this._timers.push(setTimeout(() => {
+          this.setState(prev => ({ logLines: [...prev.logLines, 'Booting portfolio...'] }));
+        }, 750));
+        this._timers.push(setTimeout(() => this.finish(), 1900));
+      }
+    };
+    this._timers.push(setTimeout(tick, 50));
+  }
+
+  finish() {
+    try { window.localStorage && window.localStorage.setItem('pf_visited', '1'); } catch (e) {}
+    this.setState({ stage: 'done' });
+  }
+
+  skip(forever) {
+    this.clearTimers();
+    try {
+      if (window.localStorage) {
+        window.localStorage.setItem('pf_visited', '1');
+        if (forever) window.localStorage.setItem('pf_skip_intro', '1');
+      }
+    } catch (e) {}
+    this.setState({ stage: 'done' });
+  }
+
+  replayIntro() {
+    try { window.localStorage && window.localStorage.removeItem('pf_skip_intro'); } catch (e) {}
+    this.setState({ stage: 'idle', typedLen: 0, logLines: [], coffeePct: 0 }, () => this.componentDidMount());
+  }
+
+  renderVals() {
+    const st = this.state;
+    const cupFillHeight = Math.round(60 * (st.coffeePct / 100));
+    const education = [
+      { period: '2014.03 – 2017.02', title: '용인 홍천고등학교 졸업', detail: '', color: 'oklch(0.55 0.02 250)' },
+      { period: '2018.03 – 2025.08', title: '가천대학교 산업경영공학과', detail: 'AI 소프트웨어학과 부전공 · 졸업예정', color: 'oklch(0.55 0.02 250)' },
+      { period: '2023.07 – 2024.01', title: '㈜올빅뎃 인턴', detail: '프론트/백엔드 QA 및 테스트 담당', color: 'oklch(0.75 0.16 150)' },
+      { period: '2024.03 – 2024.09', title: '한국콘텐츠진흥원 게임인재원', detail: 'C++ 기반 게임 서버/클라이언트 프로젝트', color: 'oklch(0.75 0.16 150)' },
+      { period: '2025.03 – 2025.07', title: '손랩정보영재학원 강사', detail: '알고리즘(C++, Python) 교육', color: 'oklch(0.78 0.14 70)' },
+      { period: '2026.06 –', title: 'MBCA 컴퓨터 아카데미 보조강사', detail: '웹앱 프로젝트 보조', color: 'oklch(0.78 0.14 70)' },
+    ];
+    const projects = [
+      {
+        title: 'WinAPI 프로젝트 — 유피의 소원',
+        org: '게임인재원',
+        period: '2024.03 – 2024.09',
+        tasks: ['플레이어 물리와 이동 구현', '플레이어 애니메이션 구현', 'UI 배치 및 이벤트 구현'],
+        tech: ['C++', 'WinAPI', 'Visual Studio 2017', 'SVN'],
+        repo: 'https://github.com/1thorn1/WinApi_Project',
+      },
+      {
+        title: 'DirectX 2D 프로젝트 — 피카츄 배구 (모작)',
+        org: '게임인재원',
+        period: '2024.03 – 2024.09',
+        tasks: ['D2D 엔진 구축', 'Scene 전환과 오브젝트 배치 구현', '오브젝트 간 충돌(벡터 내적) 구현', '플레이어 이동과 FSM 구현'],
+        tech: ['C++', 'DirectX 2D', 'Visual Studio 2017', 'GitHub'],
+        repo: 'https://github.com/1thorn1/D2D_modify',
+      },
+      {
+        title: '프론트/백엔드 QA & 부하 테스트',
+        org: '㈜올빅뎃',
+        period: '2023.07 – 2024.01',
+        tasks: ['TypeScript + Jest로 테스트 코드 작성', '코드 컨벤션 정립으로 가독성·유지보수성 개선', 'JMeter로 FastAPI 서버 부하 테스트 수행'],
+        tech: ['TypeScript', 'Jest', 'FastAPI', 'JMeter', 'Figma', 'GitHub'],
+      },
+      {
+        title: '알고리즘 교육 & 정부과제 기획',
+        org: '손랩정보영재학원',
+        period: '2025.03 – 2025.07',
+        tasks: ['C++/Python 알고리즘 강의', '늘봄사업 정부과제 프로젝트 기획'],
+        tech: ['C++', 'Python'],
+      },
+    ];
+    const iconMap = {
+      'C++': 'cplusplus', 'TypeScript': 'typescript', 'Python': 'python',
+      'GitHub': 'github', 'Figma': 'figma', 'Jest': 'jest', 'FastAPI': 'fastapi',
+      'JMeter': 'apachejmeter', 'SVN': 'subversion', 'Visual Studio 2017': 'visualstudio',
+    };
+    const projectsWithIcons = projects.map(p => ({
+      ...p,
+      tech: p.tech.map(name => ({
+        name,
+        icon: iconMap[name] ? `https://cdn.jsdelivr.net/npm/simple-icons@v13/icons/${iconMap[name]}.svg` : null,
+      })),
+    }));
+
+    const commentsWithMeta = st.comments.map(c => ({
+      ...c,
+      createdAtLabel: this.formatDate(c.createdAt),
+      onDelete: () => this.deleteComment(c.id),
+    }));
+
+    return {
+      showIntro: st.stage !== 'done',
+      showMain: st.stage === 'done',
+      isWaiting: st.stage === 'waiting',
+      isRunning: st.stage === 'running',
+      typedCommand: this.fullCommand.slice(0, st.typedLen),
+      logLines: st.logLines,
+      coffeePct: st.coffeePct,
+      cupFillY: 85 - cupFillHeight,
+      cupFillHeight,
+      onSkip: () => this.skip(false),
+      onSkipForever: () => this.skip(true),
+      onReplay: () => this.replayIntro(),
+      education,
+      projects: projectsWithIcons,
+      resumeHref: 'resume.pdf',
+      visitorCountLabel: st.visitorCount === null ? '...' : `${st.visitorCount}명 방문`,
+      comments: commentsWithMeta,
+      noComments: st.comments.length === 0,
+      commentAuthor: st.commentAuthor,
+      commentContent: st.commentContent,
+      commentError: st.commentError,
+      commentSubmitting: st.commentSubmitting,
+      submitLabel: st.commentSubmitting ? '작성 중...' : '댓글 작성',
+      onCommentAuthorChange: (e) => this.onCommentAuthorChange(e),
+      onCommentContentChange: (e) => this.onCommentContentChange(e),
+      onSubmitComment: () => this.submitComment(),
+    };
+  }
+}
+</script>
+</body>
+</html>
